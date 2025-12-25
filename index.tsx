@@ -192,6 +192,10 @@ const AnalysisPage = ({ answers, onGlobalBack }: { answers: Answer[]; onGlobalBa
     return cleaned;
   };
 
+    useEffect(() => {
+    const getAIAnalysis = async () => {
+      try {
+        setLoading(true);
       const promptText = `
         作为一名深邃的心理学家与诗人，请阅读以下21个关于2025年的回答。
         请生成三部分内容，严格遵循要求：
