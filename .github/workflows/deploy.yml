@@ -30,6 +30,12 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
+          
+      - name: Build
+        run: npm run build
+        env:
+          VITE_ZHIPU_API_KEY: ${{ secrets.VITE_ZHIPU_API_KEY }}
+  
 
   deploy:
     environment:
