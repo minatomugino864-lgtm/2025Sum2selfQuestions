@@ -1,2 +1,20 @@
-# 2025Sum2selfQuestions
-嘿，这一年过得好吗？ 我做了一个小网页，想邀请你花几分钟时间，和 2025 年的自己聊聊天。 这里有 20 个关于过去一年的小问题：那些你走过的路、爱过的人、掉过的泪，还有藏在心底的碎碎念。 每一个回答都是你成长的注脚。最后，AI 还会根据你的回答，为你生成一份专属的‘年度人格画像’。 记得在最后一页，把那份‘总结海报’截图留存哦。
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
+
+# Run and deploy your AI Studio app
+
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/drive/1aCdNCH0wk90wW0HOGbG1GrjgMojR9tBZ
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
