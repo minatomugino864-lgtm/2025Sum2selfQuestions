@@ -120,11 +120,22 @@ const Quiz = ({ index, answer, onUpdate, onNext, onBack, isLast }: any) => (
 // Added optional key prop to resolve TypeScript error in AnimatePresence
 const SummaryPage = ({ answers, onAnalyze }: { answers: Answer[]; onAnalyze: () => void; key?: string }) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col">
-    <div className="flex flex-col items-center text-center space-y-6 pt-4 mb-10">
+    {/* 顶部区域：包含标题和“灵魂生成”按钮 */}
+    <div className="flex flex-col items-center text-center space-y-6 pt-4 mb-8">
       <div className="w-16 h-px bg-[#8c927d]/30"></div>
       <h2 className="text-3xl font-light tracking-[0.4em] text-[#3d3d3d]">记忆长卷</h2>
       <p className="text-[10px] tracking-[0.6em] text-stone-300 uppercase font-sans">Collected Memories of 2025</p>
+      
+      {/* 🚀 移动到这里的“灵魂生成”按钮 */}
+      <button 
+        onClick={onAnalyze} 
+        className="mt-2 px-14 py-4 bg-[#3d3d3d] text-white text-[11px] tracking-[0.4em] uppercase font-bold hover:bg-[#8c927d] transition-all font-sans flex items-center gap-3 shadow-xl rounded-full no-print"
+      >
+        <Sparkles className="w-4 h-4" /> 灵魂生成
+      </button>
     </div>
+
+    {/* 中间滚动内容区域 */}
     <div className="flex-grow overflow-y-auto px-8 space-y-16 scrollbar-thin scrollbar-thumb-[#8c927d]/20 scrollbar-track-transparent">
       {answers.map((item) => (
         <div key={item.id} className="max-w-3xl mx-auto space-y-6 border-b border-stone-100/50 pb-12 last:border-0">
@@ -137,12 +148,11 @@ const SummaryPage = ({ answers, onAnalyze }: { answers: Answer[]; onAnalyze: () 
         </div>
       ))}
     </div>
-    <div className="flex justify-between items-center py-10 px-4 no-print border-t border-stone-100 mt-6">
+
+    {/* 底部区域：仅保留下载归档按钮 */}
+    <div className="flex justify-center items-center py-8 px-4 no-print border-t border-stone-100/30 mt-6">
       <button onClick={() => window.print()} className="flex items-center gap-2 text-stone-400 hover:text-[#8c927d] transition-all font-sans text-[11px] tracking-[0.2em] uppercase font-bold">
-        <Printer className="w-4 h-4" /> 归档下载
-      </button>
-      <button onClick={onAnalyze} className="px-12 py-4 bg-[#3d3d3d] text-white text-[11px] tracking-[0.4em] uppercase font-bold hover:bg-[#8c927d] transition-all font-sans flex items-center gap-3 shadow-xl">
-        <Sparkles className="w-4 h-4" /> 灵魂生成
+        <Printer className="w-4 h-4" /> 归档下载 (PDF)
       </button>
     </div>
   </motion.div>
