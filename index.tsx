@@ -143,6 +143,14 @@ const SummaryPage = ({ answers, onAnalyze }: { answers: Answer[]; onAnalyze: () 
         >
           <Printer className="w-4 h-4" /> 归档下载
         </button>
+
+        <button 
+          onClick={handleReset} 
+          className="text-stone-300 hover:text-red-400 transition-colors text-[9px] tracking-widest uppercase mt-4"
+        >
+        清空并重新开始
+        </button>
+        
       </div>
     </div>
 
@@ -326,7 +334,23 @@ const AnalysisPage = ({ answers, onGlobalBack }: { answers: any[]; onGlobalBack:
 const App = () => {
   const [state, setState] = useState(APP_STATE.INTRO);
   const [idx, setIdx] = useState(0);
-  const [answers, setAnswers] = useState<Answer[]>(QUESTIONS.map(q => ({ id: q.id, question: q.text, answer: '' })));
+  
+  const [answers, setAnswers] = useState<Answer[]>(() => {
+    const saved = localStorage.getItem('2025_archive_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("读取本地缓存失败", e);
+      }
+    }
+    // 如果没有旧数据，则使用默认的空答案列表
+    return QUESTIONS.map(q => ({ id: q.id, question: q.text, answer: '' }));
+  });
+
+  useEffect(() => {
+    localStorage.setItem('2025_archive_data', JSON.stringify(answers));
+  }, [answers]);
 
   const handleNext = () => {
     if (idx < QUESTIONS.length - 1) setIdx(i => i + 1);
@@ -343,6 +367,28 @@ const App = () => {
     next[idx].answer = val;
     setAnswers(next);
   };
+
+  const handleReset = () => {
+    if (window.confirm("确定要清空所有回答重新开始吗？")) {
+      const freshAnswers = QUESTIONS.map(q => ({ id: q.id, question: q.text, answer: '' }));
+      setAnswers(freshAnswers);
+      setIdx(0);
+      setState(APP_STATE.INTRO);
+      localStorage.removeItem('2025_archive_data');
+    }
+  };
+
+  return (
+    <Layout>
+      <AnimatePresence mode="wait">
+        {state === APP_STATE.INTRO && <Intro key="i" onStart={() => setState(APP_STATE.QUIZ)} />}
+        {state === APP_STATE.QUIZ && <Quiz key="q" index={idx} answer={answers[idx].answer} onUpdate={updateVal} onNext={handleNext} onBack={handleBack} isLast={idx === QUESTIONS.length - 1} />}
+        {state === APP_STATE.SUMMARY && <SummaryPage key="s" answers={answers} onAnalyze={() => setState(APP_STATE.ANALYSIS)} />}
+        {state === APP_STATE.ANALYSIS && <AnalysisPage key="a" answers={answers} onGlobalBack={() => setState(APP_STATE.SUMMARY)} />}
+      </AnimatePresence>
+    </Layout>
+  );
+};
 
   return (
     <Layout>
