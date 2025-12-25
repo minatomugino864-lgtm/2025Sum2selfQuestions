@@ -1,20 +1,2 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/drive/1aCdNCH0wk90wW0HOGbG1GrjgMojR9tBZ
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+本页面基于“和 2025 有关的 20 个问题”互动生成。旨在通过深度的自我对话，帮助你复盘过去一年的成长与情感。
+操作指南： 请依次回答 20 个问题（包含 1 个 2026 附加题），完成后系统将自动分析你的回答，并生成一份包含智能人格评价的总结报告。
