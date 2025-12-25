@@ -192,10 +192,6 @@ const AnalysisPage = ({ answers, onGlobalBack }: { answers: Answer[]; onGlobalBa
     return cleaned;
   };
 
-  const fetchAnalysis = async () => {
-    setLoading(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const promptText = `
         作为一名深邃的心理学家与诗人，请阅读以下21个关于2025年的回答。
         请生成三部分内容，严格遵循要求：
@@ -214,11 +210,42 @@ const AnalysisPage = ({ answers, onGlobalBack }: { answers: Answer[]; onGlobalBa
         内容...
 
         回答内容：
-        ${answers.map(a => `${a.question}\n答：${a.answer}`).join('\n\n')}
+        ${answers.map((a, index) => `Q${index + 1}: ${a.question}\n答: ${a.answer}`).join('\n\n')}
       `;
 
-      const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: promptText });
-      const text = response.text || "";
+      const ZHIPU_API_KEY = import.meta.env.VITE_ZHIPU_API_KEY; 
+
+      const response = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${ZHIPU_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "glm-4.7", 
+          messages: [
+            {
+              role: "user",
+              content: promptText
+            }
+          ],
+          thinking: {
+            type: "enabled"
+          },
+          max_tokens: 65536, 
+          temperature: 1.0
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("智谱 API 报错:", errorData);
+        throw new Error("AI生成失败，请检查 API Key 或余额");
+      }
+
+      const data = await response.json();
+    
+      const text = data.choices[0].message.content || "";
       
       const sections = text.split(/\[板块[123]\]/);
       let p1 = sections[1] || "";
