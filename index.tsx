@@ -120,19 +120,30 @@ const Quiz = ({ index, answer, onUpdate, onNext, onBack, isLast }: any) => (
 // Added optional key prop to resolve TypeScript error in AnimatePresence
 const SummaryPage = ({ answers, onAnalyze }: { answers: Answer[]; onAnalyze: () => void; key?: string }) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col">
-    {/* 顶部区域：包含标题和“灵魂生成”按钮 */}
+    {/* 顶部区域：包含标题和所有功能按钮 */}
     <div className="flex flex-col items-center text-center space-y-6 pt-4 mb-8">
       <div className="w-16 h-px bg-[#8c927d]/30"></div>
       <h2 className="text-3xl font-light tracking-[0.4em] text-[#3d3d3d]">记忆长卷</h2>
       <p className="text-[10px] tracking-[0.6em] text-stone-300 uppercase font-sans">Collected Memories of 2025</p>
       
-      {/* 🚀 移动到这里的“灵魂生成”按钮 */}
-      <button 
-        onClick={onAnalyze} 
-        className="mt-2 px-14 py-4 bg-[#3d3d3d] text-white text-[11px] tracking-[0.4em] uppercase font-bold hover:bg-[#8c927d] transition-all font-sans flex items-center gap-3 shadow-xl rounded-full no-print"
-      >
-        <Sparkles className="w-4 h-4" /> 灵魂生成
-      </button>
+      {/* 按钮组容器 */}
+      <div className="flex flex-wrap justify-center gap-4 mt-2 no-print">
+        {/* 灵魂生成按钮 */}
+        <button 
+          onClick={onAnalyze} 
+          className="px-8 py-4 bg-[#3d3d3d] text-white text-[10px] tracking-[0.3em] uppercase font-bold hover:bg-[#8c927d] transition-all font-sans flex items-center gap-3 shadow-xl rounded-full"
+        >
+          <Sparkles className="w-4 h-4" /> 灵魂生成
+        </button>
+
+        {/* 打印归档按钮（新移到此处） */}
+        <button 
+          onClick={() => window.print()} 
+          className="px-8 py-4 border border-[#8c927d]/30 text-[#8c927d] text-[10px] tracking-[0.3em] uppercase font-bold hover:bg-[#8c927d] hover:text-white transition-all font-sans flex items-center gap-3 rounded-full bg-white/50 backdrop-blur-sm"
+        >
+          <Printer className="w-4 h-4" /> 归档下载
+        </button>
+      </div>
     </div>
 
     {/* 中间滚动内容区域 */}
@@ -149,12 +160,8 @@ const SummaryPage = ({ answers, onAnalyze }: { answers: Answer[]; onAnalyze: () 
       ))}
     </div>
 
-    {/* 底部区域：仅保留下载归档按钮 */}
-    <div className="flex justify-center items-center py-8 px-4 no-print border-t border-stone-100/30 mt-6">
-      <button onClick={() => window.print()} className="flex items-center gap-2 text-stone-400 hover:text-[#8c927d] transition-all font-sans text-[11px] tracking-[0.2em] uppercase font-bold">
-        <Printer className="w-4 h-4" /> 归档下载 (PDF)
-      </button>
-    </div>
+    {/* 底部留出一点空白，不再放置按钮 */}
+    <div className="h-8 no-print"></div>
   </motion.div>
 );
 
@@ -238,8 +245,7 @@ const AnalysisPage = ({ answers, onGlobalBack }: { answers: any[]; onGlobalBack:
           body: JSON.stringify({
             model: "glm-4.7",
             messages: [{ role: "user", content: promptText }],
-            thinking: { type: "enabled" },
-            max_tokens: 4096,
+            max_tokens: 16384,
             temperature: 0.8
           })
         });
