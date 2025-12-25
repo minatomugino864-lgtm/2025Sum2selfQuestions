@@ -178,10 +178,9 @@ const AnalysisStep = ({ title, subtitle, icon, content, onBack, onNext, nextLabe
 );
 
 // Added optional key prop to resolve TypeScript error in AnimatePresence
-const AnalysisPage = ({ answers, onGlobalBack }: { answers: Answer[]; onGlobalBack: () => void; key?: string }) => {
-  const [step, setStep] = useState(1);
-  const [analysis, setAnalysis] = useState<any>(null);
+const AnalysisPage = ({ answers, onGlobalBack }: { answers: any[]; onGlobalBack: () => void }) => {
   const [loading, setLoading] = useState(true);
+  const [analysis, setAnalysis] = useState<{ portrait: string; keywords: string[]; letter: string } | null>(null);
 
   const cleanText = (text: string, prefixes: string[]) => {
     let cleaned = text.trim();
@@ -192,11 +191,11 @@ const AnalysisPage = ({ answers, onGlobalBack }: { answers: Answer[]; onGlobalBa
     return cleaned;
   };
 
-    useEffect(() => {
-    const getAIAnalysis = async () => {
+  useEffect(() => {
+    const fetchAIResult = async () => {
       try {
         setLoading(true);
-      const promptText = `
+        const promptText = `
         作为一名深邃的心理学家与诗人，请阅读以下21个关于2025年的回答。
         请生成三部分内容，严格遵循要求：
         1. 禁止输出开场白、废话、以及类似“好的”、“这是评价”之类的 meta-talk。
@@ -214,102 +213,97 @@ const AnalysisPage = ({ answers, onGlobalBack }: { answers: Answer[]; onGlobalBa
         内容...
 
         回答内容：
-        ${answers.map((a, index) => `Q${index + 1}: ${a.question}\n答: ${a.answer}`).join('\n\n')}
-      `;
+          ${answers.map((a, i) => `Q${i + 1}: ${a.question}\n答：${a.answer}`).join('\n\n')}
+        `;
 
-      const ZHIPU_API_KEY = import.meta.env.VITE_ZHIPU_API_KEY; 
+        // @ts-ignore
+        const ZHIPU_API_KEY = import.meta.env.VITE_ZHIPU_API_KEY;
 
-      const response = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${ZHIPU_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "glm-4.7", 
-          messages: [
-            {
-              role: "user",
-              content: promptText
-            }
-          ],
-          thinking: {
-            type: "enabled"
+        const response = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${ZHIPU_API_KEY}`
           },
-          max_tokens: 65536, 
-          temperature: 1.0
-        })
-      });
+          body: JSON.stringify({
+            model: "glm-4.7",
+            messages: [{ role: "user", content: promptText }],
+            thinking: { type: "enabled" },
+            max_tokens: 4096,
+            temperature: 0.8
+          })
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("智谱 API 报错:", errorData);
-        throw new Error("AI生成失败，请检查 API Key 或余额");
+        if (!response.ok) throw new Error("API请求失败");
+        const data = await response.json();
+        const fullText = data.choices[0].message.content || "";
+
+        const p1 = fullText.match(/\[板块1\]([\s\S]*?)(?=\[板块2\]|$)/i)?.[1] || "";
+        const p2 = fullText.match(/\[板块2\]([\s\S]*?)(?=\[板块3\]|$)/i)?.[1] || "";
+        const p3 = fullText.match(/\[板块3\]([\s\S]*?)$/i)?.[1] || "";
+
+        setAnalysis({
+          portrait: cleanText(p1, ['板块1']),
+          keywords: cleanText(p2, ['板块2']).split('\n').map(k => k.trim()).filter(Boolean),
+          letter: cleanText(p3, ['板块3'])
+        });
+      } catch (error) {
+        console.error("生成失败:", error);
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-    
-      const text = data.choices[0].message.content || "";
-      
-      const sections = text.split(/\[板块[123]\]/);
-      let p1 = sections[1] || "";
-      let p2 = sections[2] || "";
-      let p3 = sections[3] || "";
-
-      p1 = cleanText(p1, ["整体画像", "画像"]);
-      p2 = p2.trim();
-      p3 = cleanText(p3, ["私密书信", "书信", "信件"]);
-
-      setAnalysis({ p1, p2, p3 });
-    } catch (err) { console.error(err); } finally { setLoading(false); }
-  };
-
-  useEffect(() => { fetchAnalysis(); }, [answers]);
-
-  if (loading) return (
-    <div className="h-full flex-grow flex flex-col items-center justify-center space-y-12">
-      <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }} transition={{ repeat: Infinity, duration: 3 }}>
-        <Sparkles className="w-12 h-12 text-[#8c927d]" />
-      </motion.div>
-      <div className="text-center space-y-4">
-        <p className="text-[#8c927d] font-sans tracking-[0.5em] uppercase text-[11px] font-bold">Scanning Your 2025 Soul</p>
-        <p className="text-stone-400 italic text-sm font-light">正在剥离浮躁，提炼那一年的真实纹理...</p>
-      </div>
-    </div>
-  );
+    };
+    fetchAIResult();
+  }, [answers]);
 
   return (
-    <AnimatePresence mode="wait">
-      {step === 1 && (
-        <AnalysisStep key="s1" title="整体画像" subtitle="Inner Portrait" icon={<Heart className="w-6 h-6" />}
-          content={analysis?.p1} onBack={onGlobalBack} onNext={() => setStep(2)} />
-      )}
-      {step === 2 && (
-        <AnalysisStep key="s2" title="年度关键词" subtitle="Essence Keywords" icon={<BookOpen className="w-6 h-6" />}
-          customContent={
-            <div className="space-y-10 py-4 max-w-2xl mx-auto">
-              {analysis?.p2.split('\n').filter((l:string)=>l.includes('：')).map((line:string, i:number) => {
-                const [word, desc] = line.split(/[：:]/);
-                return (
-                  <div key={i} className="flex flex-col md:flex-row gap-6 md:gap-10 items-start md:items-center group">
-                    <div className="flex-shrink-0 w-full md:w-32">
-                       <h4 className="text-4xl font-bold text-[#3d3d3d] tracking-[0.1em] group-hover:text-[#8c927d] transition-colors duration-500">{word.trim()}</h4>
-                       <div className="h-[2px] w-8 bg-[#8c927d]/30 mt-2"></div>
-                    </div>
-                    <p className="text-[#5a5a5a] text-lg leading-relaxed font-light italic text-left">{desc.trim()}</p>
-                  </div>
-                );
-              })}
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }}
+      className="max-w-2xl mx-auto p-6 space-y-8"
+    >
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#8c927d]"></div>
+          <p className="text-[#8c927d] animate-pulse">AI 正在深度思考你的 2025...</p>
+        </div>
+      ) : analysis ? (
+        <>
+          <section className="space-y-4">
+            <h2 className="text-xs tracking-[0.2em] text-[#8c927d] uppercase border-b border-[#8c927d]/20 pb-2">Overall Portrait</h2>
+            <p className="text-lg leading-relaxed text-slate-800 whitespace-pre-wrap">{analysis.portrait}</p>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xs tracking-[0.2em] text-[#8c927d] uppercase border-b border-[#8c927d]/20 pb-2">Keywords</h2>
+            <div className="flex flex-wrap gap-3">
+              {analysis.keywords.map((word, i) => (
+                <span key={i} className="px-4 py-1.5 bg-[#8c927d]/10 text-[#8c927d] rounded-full text-sm font-medium">
+                  {word}
+                </span>
+              ))}
             </div>
-          }
-          onBack={() => setStep(1)} onNext={() => setStep(3)} />
+          </section>
+
+          <section className="bg-white/40 p-8 rounded-3xl border border-[#8c927d]/10">
+            <h2 className="text-xs tracking-[0.2em] text-[#8c927d] uppercase text-center mb-6">A Private Letter</h2>
+            <p className="italic text-slate-700 leading-loose whitespace-pre-wrap text-center">{analysis.letter}</p>
+          </section>
+
+          <div className="flex justify-center pt-10">
+            <button onClick={onGlobalBack} className="text-[#8c927d] text-sm hover:underline tracking-widest uppercase">
+              Back to Start
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-20">
+          <p>生成失败，请检查网络</p>
+          <button onClick={onGlobalBack} className="mt-4 underline">返回重试</button>
+        </div>
       )}
-      {step === 3 && (
-        <AnalysisStep key="s3" title="私密信函" subtitle="Private Epistle" icon={<MailOpen className="w-6 h-6" />}
-          content={<div className="text-left whitespace-pre-wrap">{analysis?.p3}</div>}
-          isLast onBack={() => setStep(2)} onNext={onGlobalBack} nextLabel="RE-ARCHIVE" />
-      )}
-    </AnimatePresence>
+    </motion.div>
   );
 };
 
