@@ -219,7 +219,7 @@ const AnalysisPage = ({ answers, onGlobalBack }: { answers: any[]; onGlobalBack:
         // @ts-ignore
         const ZHIPU_API_KEY = import.meta.env.VITE_ZHIPU_API_KEY;
 
-        const response = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
+        const response = await fetch("https://cors-anywhere.herokuapp.com/https://open.bigmodel.cn/api/paas/v4/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
