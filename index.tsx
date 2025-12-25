@@ -118,7 +118,7 @@ const Quiz = ({ index, answer, onUpdate, onNext, onBack, isLast }: any) => (
 );
 
 // Added optional key prop to resolve TypeScript error in AnimatePresence
-const SummaryPage = ({ answers, onAnalyze }: { answers: Answer[]; onAnalyze: () => void; key?: string }) => (
+const SummaryPage = ({ answers, onAnalyze, onReset }: { answers: Answer[]; onAnalyze: () => void; onReset: () => void; key?: string }) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col">
     {/* 顶部区域：包含标题和所有功能按钮 */}
     <div className="flex flex-col items-center text-center space-y-6 pt-4 mb-8">
@@ -145,10 +145,10 @@ const SummaryPage = ({ answers, onAnalyze }: { answers: Answer[]; onAnalyze: () 
         </button>
 
         <button 
-          onClick={handleReset} 
-          className="text-stone-300 hover:text-red-400 transition-colors text-[9px] tracking-widest uppercase mt-4"
+          onClick={onReset} 
+          className="text-stone-300 hover:text-red-400 transition-colors text-[9px] tracking-widest uppercase mt-4 no-print"
         >
-        清空并重新开始
+          清空并重新开始
         </button>
         
       </div>
@@ -383,23 +383,12 @@ const App = () => {
       <AnimatePresence mode="wait">
         {state === APP_STATE.INTRO && <Intro key="i" onStart={() => setState(APP_STATE.QUIZ)} />}
         {state === APP_STATE.QUIZ && <Quiz key="q" index={idx} answer={answers[idx].answer} onUpdate={updateVal} onNext={handleNext} onBack={handleBack} isLast={idx === QUESTIONS.length - 1} />}
-        {state === APP_STATE.SUMMARY && <SummaryPage key="s" answers={answers} onAnalyze={() => setState(APP_STATE.ANALYSIS)} />}
+        {state === APP_STATE.SUMMARY && <SummaryPage key="s" answers={answers} onAnalyze={() => setState(APP_STATE.ANALYSIS)} onReset={handleReset}/>}
         {state === APP_STATE.ANALYSIS && <AnalysisPage key="a" answers={answers} onGlobalBack={() => setState(APP_STATE.SUMMARY)} />}
       </AnimatePresence>
     </Layout>
   );
 };
 
-  return (
-    <Layout>
-      <AnimatePresence mode="wait">
-        {state === APP_STATE.INTRO && <Intro key="i" onStart={() => setState(APP_STATE.QUIZ)} />}
-        {state === APP_STATE.QUIZ && <Quiz key="q" index={idx} answer={answers[idx].answer} onUpdate={updateVal} onNext={handleNext} onBack={handleBack} isLast={idx === QUESTIONS.length - 1} />}
-        {state === APP_STATE.SUMMARY && <SummaryPage key="s" answers={answers} onAnalyze={() => setState(APP_STATE.ANALYSIS)} />}
-        {state === APP_STATE.ANALYSIS && <AnalysisPage key="a" answers={answers} onGlobalBack={() => setState(APP_STATE.SUMMARY)} />}
-      </AnimatePresence>
-    </Layout>
-  );
-};
 
 createRoot(document.getElementById('root')!).render(<App />);
